@@ -2,7 +2,15 @@ from ultralytics import YOLO
 from utils import *
 
 # Initializing YOLOv11 model (version 'x')
-model = YOLO('yolo11x.pt')    
+model_x = YOLO('yolo11x.pt')    
+model_l = YOLO('yolo11l.pt')
+model_m = YOLO('yolo11m.pt')
+model_s = YOLO('yolo11s.pt')
+model_n = YOLO('yolo11n.pt')
+
+yolo_models = {
+    'x' : model_x, 'l' : model_l, 'm' : model_m, 's' : model_s, 'n' : model_n
+}
 
 # Автомобиль: 0 (CVAT) -> 2 (YOLO)
 yolo_to_cvat_classes_scheme = {0:2}
@@ -13,7 +21,7 @@ while True:
     print('What do you desire, my friend?')
     print('1. View the classes of the standard pre-trained YOLOv11 model')
     print('2. Extract frames from a video')
-    print('3. Evaluate YOLO model using pre-made annotations (done via CVAT)')
+    print('3. Evaluate YOLO models using pre-made annotations (done via CVAT)')
     print('4. Draw bound boxes to images')
     print('5. Walk away')
 
@@ -40,9 +48,12 @@ while True:
     elif choice == 3:
         annotations_path = input('Sure! Enter the path to the folder containing right annotations: ')
         frames_path = input('Alright. Now enter the path to the folder containing all the frames: ')
-        print('Calculating...')
-        evaluate_yolo_model(model, frames_path, annotations_path, yolo_to_cvat_classes_scheme)
-        print('Done!')
+        for (model_name, model) in yolo_models.items():
+            print(f'Calculating YOLO model \'{model_name}\'...')
+            evaluate_yolo_model(model, frames_path, annotations_path, yolo_to_cvat_classes_scheme)
+            print('Done!')
+            print('******************\n\n')
+            input('Press any key + Enter to continue...')
     elif choice == 4:
         labels_path = input('As you wish! Enter the path to the folder with the bounding boxes coordinates:')
         images_path = input('Alright! Now enter the path to the folder containing all the frames:')

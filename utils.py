@@ -1,6 +1,7 @@
 import cv2
 import os
 import numpy as np
+import time
 
 # Вычисление IOU
 def calculate_iou(box1, box2):
@@ -36,10 +37,14 @@ def evaluate_yolo_model(yolo_model, frames_path, annotations_path, classes_schem
     frame_files = os.listdir(frames_path)
     all_tp, all_fp, all_fn = 0, 0, 0
 
+    total_time = 0
+    processed_frames = 0
+
     for idx, frame in enumerate(frame_files):
         # Обрабатываем не все фреймы (по-умолчанию - каждый 10-й)
         if idx % step != 0:
             continue
+        start_time = time.time()
         print(f'Processing frame {idx}...')
         img = cv2.imread(os.path.join(frames_path, frame))
         img_height, img_width = img.shape[:2]
@@ -90,12 +95,22 @@ def evaluate_yolo_model(yolo_model, frames_path, annotations_path, classes_schem
         all_tp += tp
         all_fp += fp
         all_fn += fn
+
+        end_time = time.time()
+        frame_time = end_time - start_time  # Время обработки кадра
+        total_time += frame_time  # Суммируем общее время
+        processed_frames += 1
     
     precision = all_tp / (all_tp + all_fp) if (all_tp + all_fp) > 0 else 0
     recall = all_tp / (all_tp + all_fn) if (all_tp + all_fn) > 0 else 0
     f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
 
     print(f'Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1_score:.4f}')
+    if processed_frames > 0:
+        average_time = total_time / processed_frames
+        print(f'Average frame processing time: {average_time:.4f} s.')
+    else:
+        print("No processed frames found.")
 
 # Функция рисует ограничивающие рамки на изображениях
 # Изображения хранятся по адресу {images_dir}, метки - в отдельных текстовых файлах по адресу {labels_dir}
